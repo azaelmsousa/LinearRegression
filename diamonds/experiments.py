@@ -225,6 +225,38 @@ def fit_evaluate(regr, X_train, X_val, y_train, y_val, log_y=False, scale=False,
     evaluate(y_val, y_pred)
 
 
+def fit_evaluate_regr(regr, train, test, log_y=False, scale=False, exclude_features=None):
+    print("Evaluating ...")
+    X_train, y_train = separate_X_y(train, exclude_features)
+    X_test, y_test = separate_X_y(test, exclude_features)
+
+    if scale:
+        scaler = RobustScaler()
+        scaler.fit(X_train)
+        X_train = scaler.transform(X_train)
+        # Fit on train, transforming the test, avoid data leak
+        X_val = scaler.transform(X_test)
+
+    if regr:        
+        if log_y:
+            regr.fit(X_train, np.log(y_train))
+            y_pred = np.exp(
+                np.array(regr.predict(X_val), dtype=np.float128))
+        else:
+            regr.fit(X_train, y_train)
+            y_pred = regr.predict(X_val)
+
+    else:
+        if log_y:
+            theta = normal_equation.normal_equation(
+                X_train, np.log(y_train))
+            y_pred = np.exp(customSGD.predict(theta, X_val))
+        else:
+            theta = normal_equation.normal_equation(X_train, y_train)
+            y_pred = customSGD.predict(theta, X_val)
+
+    evaluate(y_test, y_pred)
+
 def fit_evaluate_customSGD(train, test, params={}, log_y=False, scale=False, exclude_features=None):
     print("Evaluating ...")
 

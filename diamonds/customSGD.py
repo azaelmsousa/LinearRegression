@@ -146,7 +146,7 @@ def SGD(lr, max_iter, X, y, lr_optimizer=None,
     error_val = 0.
     while ((error > epsilon) and (it < max_iter)):
         if lr_optimizer == 'invscaling':
-            eta = lr / pow(t, power_t)
+            eta = lr / (i + 1) * pow(t, power_t)
         else:
             eta = lr
 
